@@ -1,5 +1,6 @@
 import { Build } from './types/build'
 import { Item } from './types/wynn'
+import { spReq } from './wynn_logic/build'
 
 const encodeWynnDataURL = (b: Build): string => {
   const buildKeys: (keyof Build)[] = ['helmet', 'chestplate', 'leggings', 'boots', 'ring1', 'ring2', 'bracelet', 'necklace', 'weapon']
@@ -11,15 +12,6 @@ const encodeWynnDataURL = (b: Build): string => {
 export type WynnBuilderItemMap = { [name: string]: number }
 
 const encodeWynnBuilderV4URL = (b: Build, level: number, idMap: WynnBuilderItemMap): string => {
-  // sp requirements
-  const spReq = [0, 0, 0, 0, 0]
-  const spReqFieldNames = ['strength', 'dexterity', 'intelligence', 'defense', 'agility'] as const
-  Object.values(b).forEach((item: Item) => {
-    for (let i = 0; i < 5; i++) {
-      spReq[i] = Math.max(spReq[i], item[spReqFieldNames[i]])
-    }
-  })
-
   // https://github.com/hppeng-wynn/hppeng-wynn.github.io
   const digits =
     //   0       8       16      24      32      40      48      56     63
@@ -41,7 +33,7 @@ const encodeWynnBuilderV4URL = (b: Build, level: number, idMap: WynnBuilderItemM
       .map((id) => fromIntN(id, 3))
       .join('')
   }${
-    spReq.map((req) => fromIntN(req, 2)).join('')
+    spReq(b).map((req) => fromIntN(req, 2)).join('')
   }${
     fromIntN(level, 2)
   }`

@@ -1,9 +1,10 @@
 import * as fs from 'fs'
 import { simulatedAnnealing } from './annealing'
-import { parameterPresets } from './wynn_logic'
+import { parameterPresets } from './wynn_logic/parameter_presets'
 import { printBuild } from './encoder'
 import { ItemDB } from './types/wynn'
 import { Gears } from './types/build'
+import { dps, idBoosts } from './wynn_logic/build'
 
 // Load data
 
@@ -30,5 +31,7 @@ const wynnBuilderItemMap: { [name: string]: number } = Object.fromEntries(wynnBu
 // Run
 
 const level = 106
-const best = simulatedAnnealing(parameterPresets[0], gears, 'Archer', level)
+const best = simulatedAnnealing(parameterPresets[2], gears, 'Warrior', level)
 printBuild(best, level, wynnBuilderItemMap)
+console.log(idBoosts(best))
+console.log(dps(best))

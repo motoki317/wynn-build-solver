@@ -1,5 +1,6 @@
 import { Build, Class, Gears } from './types/build'
-import { HyperParameters, isValidBuild, neighbor, UtilityFunc } from './wynn_logic'
+import { HyperParameters, UtilityFunc } from './wynn_logic/parameter_presets'
+import { isValidBuild, neighbor } from './wynn_logic/constraints'
 
 const nextTemperature = (initialTemperature: number, progress: number): number => {
   // TODO: better cooling
