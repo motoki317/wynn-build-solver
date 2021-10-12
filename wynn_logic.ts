@@ -7,7 +7,7 @@ import {
   damageStringToAvg,
   weaponTypeToClass
 } from './maps'
-import { clamp, randomPickOne } from './utils'
+import { clamp, nextPermutation, randomPickOne } from './utils'
 
 export type UtilityFunc = (b: Build) => number
 
@@ -93,9 +93,76 @@ export const neighbor = (b: Build, gears: Gears, classConstraint: Class | undefi
 
 const levelToSP = (level: number): number => (clamp(level, 1, 101) - 1) * 2
 
+const isValidEquipOrder = (b: Build, order: (Exclude<keyof Build, 'weapon'>)[], manualSP: number): [boolean, number] => {
+  const manualAssign = [0, 0, 0, 0, 0]
+  const spReq = [0, 0, 0, 0, 0]
+  const spBoost = [0, 0, 0, 0, 0]
+  const spReqFieldNames = ['strength', 'dexterity', 'intelligence', 'defense', 'agility'] as const
+  const spBoostFieldNames = ['strengthPoints', 'dexterityPoints', 'intelligencePoints', 'defensePoints', 'agilityPoints'] as const
+
+  const check = (item: Item): boolean => {
+    for (let spIndex = 0; spIndex < 5; spIndex++) {
+      const req = item[spReqFieldNames[spIndex]]
+      const boost = item[spBoostFieldNames[spIndex]]
+
+      // can you wear the piece?
+      manualAssign[spIndex] = Math.max(manualAssign[spIndex], req - spBoost[spIndex])
+      if (100 < manualAssign[spIndex]) return false
+      // does it not exceed the maximum assignable manual SP?
+      if (manualSP < manualAssign.reduce((acc, cur) => acc + cur, 0)) return false
+
+      // wear the piece
+      spReq[spIndex] = Math.max(spReq[spIndex], req)
+      spBoost[spIndex] += boost
+
+      // is requirement satisfied after wearing the piece?
+      if (manualAssign[spIndex] + spBoost[spIndex] < spReq[spIndex]) return false
+    }
+    return true
+  }
+
+  for (let i = 0; i < order.length; i++){
+    const item = b[order[i]]
+    if (item === undefined) continue
+
+    if (!check(item)) return [false, i]
+  }
+
+  if (b.weapon !== undefined && !check(b.weapon)) return [false, order.length-1]
+
+  return [true, -1]
+}
+
+// strictly checks SP requirement by considering the equip order
+const strictCheckSPRequirement = (b: Build, level: number): boolean => {
+  let currentOrder: (Exclude<keyof Build, 'weapon'>)[] =
+    ['helmet', 'chestplate', 'leggings', 'boots', 'ring1', 'ring2', 'bracelet', 'necklace']
+  currentOrder.sort()
+  const order: readonly (Exclude<keyof Build, 'weapon'>)[] = currentOrder.slice()
+
+  const nextCheck = (invalidAt: number): boolean => {
+    if (invalidAt >= order.length-2) return nextPermutation(currentOrder)
+    currentOrder = currentOrder.slice(0, invalidAt+1).concat(currentOrder.slice(invalidAt+1).sort().reverse())
+    return nextPermutation(currentOrder)
+  }
+
+  const manualSP = levelToSP(level)
+  let [ok, invalidAt] = isValidEquipOrder(b, currentOrder, manualSP)
+  if (ok) {
+    return true
+  }
+  while (nextCheck(invalidAt)) {
+    [ok, invalidAt] = isValidEquipOrder(b, currentOrder, manualSP)
+    if (ok) {
+      return true
+    }
+  }
+  console.log('strict sp check fail')
+  return false
+}
+
 export const isValidBuild = (b: Build, classConstraint: Class | undefined, level: number): boolean => {
-  // TODO: consider equip order, but could be computationally expensive
-  // sp requirements
+  // fast check sp requirements
   const spReq = [0, 0, 0, 0, 0]
   const spBoost = [0, 0, 0, 0, 0]
   const spReqFieldNames = ['strength', 'dexterity', 'intelligence', 'defense', 'agility'] as const
@@ -108,13 +175,16 @@ export const isValidBuild = (b: Build, classConstraint: Class | undefined, level
     }
   })
 
-  const spNeedToAssign = spReq
+  const manualSPAssign = spReq
     .map((req, i) => Math.max(spReq[i] - spBoost[i], 0))
   // check 100+ manual assign => invalid
-  for (const manualAssign of spNeedToAssign) {
-    if (manualAssign > 100) return false
+  for (const manualAssign of manualSPAssign) {
+    if (100 < manualAssign) return false
   }
-  if (spNeedToAssign.reduce((acc, cur) => acc + cur, 0) > levelToSP(level)) return false
+  if (levelToSP(level) < manualSPAssign.reduce((acc, cur) => acc + cur, 0)) return false
+
+  // strict check sp requirements; could be computationally expensive
+  if (!strictCheckSPRequirement(b, level)) return false
 
   // class constraints
   if (b.weapon !== undefined) {
