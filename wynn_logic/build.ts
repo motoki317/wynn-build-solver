@@ -76,18 +76,19 @@ export const dps = (b: Build): {
 
   const [str, dex] = spFinal(b).map((sp) => spToIDBoost(sp))
 
-  const attackSpeedMultiplier = attackSpeedToMultiplier[b.weapon.attackSpeed]
+  const attackSpeed = attackSpeedToMultiplier(b.weapon.attackSpeed, sumOfID(b, 'attackSpeedBonus'))
+  const attackSpeedSpellMultiplier = attackSpeedToMultiplier(b.weapon.attackSpeed, 0)
 
   // TODO: consider element conversion of each spells
   // TODO: consider powdering
   return {
     melee: {
-      neutral: Math.max(0, ((neutral * Math.max(0, 1 + idBoost.melee.neutral) + rawMelee) * attackSpeedMultiplier + poison) * (1 + str + dex)),
-      elemental: elemental.map((base, i) => Math.max(0, base * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedMultiplier * (1 + str + dex))),
+      neutral: Math.max(0, ((neutral * Math.max(0, 1 + idBoost.melee.neutral) + rawMelee) * attackSpeed + poison) * (1 + str + dex)),
+      elemental: elemental.map((base, i) => Math.max(0, base * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeed * (1 + str + dex))),
     },
     spell: {
-      neutral: Math.max(0, (neutral * Math.max(0, 1 + idBoost.spell.neutral) * attackSpeedMultiplier + poison + rawSpell) * (1 + str + dex)),
-      elemental: elemental.map((base, i) => Math.max(0, (base + rawRainbowSpell) * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedMultiplier * (1 + str + dex))),
+      neutral: Math.max(0, (neutral * Math.max(0, 1 + idBoost.spell.neutral) * attackSpeedSpellMultiplier + poison + rawSpell) * (1 + str + dex)),
+      elemental: elemental.map((base, i) => Math.max(0, (base + rawRainbowSpell) * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedSpellMultiplier * (1 + str + dex))),
     }
   }
 }

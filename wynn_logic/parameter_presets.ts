@@ -45,7 +45,7 @@ export const parameterPresets: HyperParameters[] = [
       const ehp = effectiveHP(b)
       const d = dps(b)
       const melee = d.melee.neutral + d.melee.elemental.reduce((acc, cur) => acc + cur, 0)
-      return harmonicMean(melee * 8, ehp)
+      return harmonicMean(melee, ehp)
     },
     maxIterations: 5000,
     initialTemperature: 1000
@@ -56,7 +56,7 @@ export const parameterPresets: HyperParameters[] = [
       const ehp = effectiveHP(b)
       const d = dps(b)
       const spell = d.spell.neutral + d.spell.elemental.reduce((acc, cur) => acc + cur, 0)
-      return harmonicMean(spell * 8, ehp)
+      return harmonicMean(spell, ehp)
     },
     maxIterations: 5000,
     initialTemperature: 1000

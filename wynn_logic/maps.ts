@@ -26,14 +26,21 @@ export const weaponTypeToClass = Object.fromEntries(
   Object.entries(classToWeaponType)
     .map(([cls, weapon]) => [weapon, cls as Class])) as { [key in WeaponType]: Class }
 
-export const attackSpeedToMultiplier: { [key in AttackSpeed]: number } = {
-  'SUPER_SLOW': 0.51,
-  'VERY_SLOW': 0.83,
-  'SLOW': 1.5,
-  'NORMAL': 2.05,
-  'FAST': 2.5,
-  'VERY_FAST': 3.1,
-  'SUPER_FAST': 4.3
+const attackSpeedTable: [AttackSpeed, number][] = [
+  ['SUPER_SLOW', 0.51],
+  ['VERY_SLOW', 0.83],
+  ['SLOW', 1.5],
+  ['NORMAL', 2.05],
+  ['FAST', 2.5],
+  ['VERY_FAST', 3.1],
+  ['SUPER_FAST', 4.3]
+]
+
+export const attackSpeedToMultiplier = (attackSpeed: AttackSpeed, modifier: number): number => {
+  const idx = attackSpeedTable.findIndex(([e]) => e === attackSpeed)
+  if (idx === -1) throw new Error('invalid attack speed')
+  const modifiedIdx = clamp(idx + modifier, 0, attackSpeedTable.length - 1)
+  return attackSpeedTable[modifiedIdx][1]
 }
 
 export const damageStringToMinMax = (s: string): [min: number, max: number] => {
