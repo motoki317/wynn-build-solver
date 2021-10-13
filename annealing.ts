@@ -15,7 +15,9 @@ const accept = (cur: Build, next: Build, temperature: number, utilityFunc: Utili
   return acceptProb >= Math.random()
 }
 
-export const simulatedAnnealing = (hp: HyperParameters, gears: Gears, classConstraint: Class | undefined, level: number): Build => {
+export const simulatedAnnealing = (hp: HyperParameters, gears: Gears, classConstraint: Class | undefined, level: number, strictSPCheck: boolean): Build => {
+  console.log(`Target parameter: ${hp.name}`)
+
   const maxInvalidRetry = 100
 
   const randomGear = buildCandidateGenerator(gears)
@@ -28,7 +30,7 @@ export const simulatedAnnealing = (hp: HyperParameters, gears: Gears, classConst
 
     let next: Build = neighbor(cur, randomGear, classConstraint)
     let retry = 0
-    while (!isValidBuild(next, classConstraint, level)) {
+    while (!isValidBuild(next, classConstraint, level, strictSPCheck)) {
       next = neighbor(cur, randomGear, classConstraint)
       retry++
       if (maxInvalidRetry < retry) {

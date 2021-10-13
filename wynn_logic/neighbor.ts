@@ -31,6 +31,7 @@ export const buildCandidateGenerator = (gears: Gears): RandomGear => {
 
 export const neighbor = (b: Build, gears: RandomGear, classConstraint: Class | undefined): Build => {
   // TODO: consider powdering, but could be too complex
+  // TODO: a way to swap 2 or more pieces at once
   const next: Build = {}
   Object.assign(next, b)
 

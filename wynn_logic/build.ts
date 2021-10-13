@@ -82,14 +82,24 @@ export const dps = (b: Build): {
   // TODO: consider powdering
   return {
     melee: {
-      neutral: ((neutral * Math.max(0, 1 + idBoost.melee.neutral) + rawMelee) * attackSpeedMultiplier + poison) * (1 + str + dex),
-      elemental: elemental.map((base, i) => base * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedMultiplier * (1 + str + dex)),
+      neutral: Math.max(0, ((neutral * Math.max(0, 1 + idBoost.melee.neutral) + rawMelee) * attackSpeedMultiplier + poison) * (1 + str + dex)),
+      elemental: elemental.map((base, i) => Math.max(0, base * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedMultiplier * (1 + str + dex))),
     },
     spell: {
-      neutral: (neutral * Math.max(0, 1 + idBoost.spell.neutral) * attackSpeedMultiplier + poison + rawSpell) * (1 + str + dex),
-      elemental: elemental.map((base, i) => (base + rawRainbowSpell) * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedMultiplier * (1 + str + dex)),
+      neutral: Math.max(0, (neutral * Math.max(0, 1 + idBoost.spell.neutral) * attackSpeedMultiplier + poison + rawSpell) * (1 + str + dex)),
+      elemental: elemental.map((base, i) => Math.max(0, (base + rawRainbowSpell) * Math.max(0, 1 + idBoost.melee.elemental[i]) * attackSpeedMultiplier * (1 + str + dex))),
     }
   }
+}
+
+export const effectiveHP = (b: Build): number => {
+  let hp = 0
+  Object.values(b).forEach((item) => {
+    hp += item.health ?? 0
+    hp += item.healthBonus ?? 0
+  })
+  const [, , , def, agi] = spFinal(b).map((sp) => spToIDBoost(sp))
+  return Math.max(5, hp) / (1 - def) / (1 - agi)
 }
 
 // returns maximum skill point requirement in the given build
@@ -120,6 +130,7 @@ export const spBonus = (b: Build): number[] => {
 export const spFinal = (b: Build): number[] => {
   const req = spReq(b)
   const bonus = spBonus(b)
+  // TODO: cache sp calculation using 'class Build'?
   // TODO: consider equip order and optimize final manual assign sp
   const manualAssign = req.map((_, i) => Math.max(req[i] - bonus[i], 0))
   return manualAssign.map((_, i) => manualAssign[i] + bonus[i])

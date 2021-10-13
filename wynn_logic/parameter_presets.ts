@@ -1,5 +1,6 @@
 import { Build } from '../types/build'
-import { dps } from './build'
+import { dps, effectiveHP } from './build'
+import { harmonicMean } from '../utils'
 
 export type UtilityFunc = (b: Build) => number
 
@@ -13,14 +14,9 @@ export interface HyperParameters {
 // TODO: better initial temperature according to utility func
 export const parameterPresets: HyperParameters[] = [
   {
-    name: 'hpTest',
+    name: 'effective hp',
     utilityFunc: (b: Build): number => {
-      let hp = 0
-      Object.values(b).forEach((item) => {
-        hp += item.health ?? 0
-        hp += item.healthBonus ?? 0
-      })
-      return hp
+      return effectiveHP(b)
     },
     maxIterations: 20000,
     initialTemperature: 2000
@@ -44,17 +40,25 @@ export const parameterPresets: HyperParameters[] = [
     initialTemperature: 500
   },
   {
-    name: 'balanced',
+    name: 'melee * ehp',
     utilityFunc: (b: Build): number => {
-      // TODO: balanced?
-      let hp = 0
-      Object.values(b).forEach((item) => {
-        hp += item.health ?? 0
-        hp += item.healthBonus ?? 0
-      })
-      return hp
+      const ehp = effectiveHP(b)
+      const d = dps(b)
+      const melee = d.melee.neutral + d.melee.elemental.reduce((acc, cur) => acc + cur, 0)
+      return harmonicMean(melee * 8, ehp)
     },
-    maxIterations: 20000,
-    initialTemperature: 500
+    maxIterations: 5000,
+    initialTemperature: 1000
+  },
+  {
+    name: 'spell * ehp',
+    utilityFunc: (b: Build): number => {
+      const ehp = effectiveHP(b)
+      const d = dps(b)
+      const spell = d.spell.neutral + d.spell.elemental.reduce((acc, cur) => acc + cur, 0)
+      return harmonicMean(spell * 8, ehp)
+    },
+    maxIterations: 5000,
+    initialTemperature: 1000
   }
 ]

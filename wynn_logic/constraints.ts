@@ -74,7 +74,7 @@ const strictCheckSPRequirement = (b: Build, level: number): boolean => {
   return false
 }
 
-export const isValidBuild = (b: Build, classConstraint: Class | undefined, level: number): boolean => {
+export const isValidBuild = (b: Build, classConstraint: Class | undefined, level: number, strictSPCheck: boolean): boolean => {
   // fast check sp requirements
   const req = spReq(b)
   const boost = spBonus(b)
@@ -86,7 +86,7 @@ export const isValidBuild = (b: Build, classConstraint: Class | undefined, level
   if (levelToSP(level) < manualSPAssign.reduce((acc, cur) => acc + cur, 0)) return false
 
   // strict check sp requirements; could be computationally expensive
-  if (!strictCheckSPRequirement(b, level)) return false
+  if (strictSPCheck && !strictCheckSPRequirement(b, level)) return false
 
   // class constraints
   if (b.weapon !== undefined) {
