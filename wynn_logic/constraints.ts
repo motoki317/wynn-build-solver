@@ -70,7 +70,6 @@ const strictCheckSPRequirement = (b: Build, level: number): boolean => {
       return true
     }
   }
-  console.log('strict sp check fail')
   return false
 }
 

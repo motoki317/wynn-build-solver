@@ -47,7 +47,7 @@ export const simulatedAnnealing = (hp: HyperParameters, gears: Gears, classConst
       best = cur
     }
 
-    console.log(`${k}: current utility ${cu}, best utility ${Math.max(cu, cb)}`)
+    if (k % 10 === 0) console.log(`Progress: ${k} / ${hp.maxIterations}, Utility: best ${Math.max(cu, cb)}, current ${cu}`)
   }
   return best
 }
