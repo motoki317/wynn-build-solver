@@ -78,6 +78,7 @@ export const dps = (b: Build): {
 
   const attackSpeedMultiplier = attackSpeedToMultiplier[b.weapon.attackSpeed]
 
+  // TODO: consider element conversion of each spells
   // TODO: consider powdering
   return {
     melee: {
@@ -116,7 +117,7 @@ export const spBonus = (b: Build): number[] => {
 }
 
 // returns the final skill point in the given build
-const spFinal = (b: Build): number[] => {
+export const spFinal = (b: Build): number[] => {
   const req = spReq(b)
   const bonus = spBonus(b)
   // TODO: consider equip order and optimize final manual assign sp

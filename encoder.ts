@@ -1,6 +1,5 @@
 import { Build } from './types/build'
-import { Item } from './types/wynn'
-import { spReq } from './wynn_logic/build'
+import { spFinal } from './wynn_logic/build'
 
 const encodeWynnDataURL = (b: Build): string => {
   const buildKeys: (keyof Build)[] = ['helmet', 'chestplate', 'leggings', 'boots', 'ring1', 'ring2', 'bracelet', 'necklace', 'weapon']
@@ -33,7 +32,7 @@ const encodeWynnBuilderV4URL = (b: Build, level: number, idMap: WynnBuilderItemM
       .map((id) => fromIntN(id, 3))
       .join('')
   }${
-    spReq(b).map((req) => fromIntN(req, 2)).join('')
+    spFinal(b).map((req) => fromIntN(req, 2)).join('')
   }${
     fromIntN(level, 2)
   }`

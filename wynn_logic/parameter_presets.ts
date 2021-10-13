@@ -40,8 +40,8 @@ export const parameterPresets: HyperParameters[] = [
       const d = dps(b)
       return d.spell.neutral + d.spell.elemental.reduce((acc, cur) => acc + cur, 0)
     },
-    maxIterations: 20000,
-    initialTemperature: 1000
+    maxIterations: 5000,
+    initialTemperature: 500
   },
   {
     name: 'balanced',

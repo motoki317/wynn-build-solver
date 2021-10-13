@@ -1,32 +1,8 @@
-import { Build, Class, Gears, GearType } from '../types/build'
+import { Build, Class } from '../types/build'
 import { Item, WeaponType } from '../types/wynn'
-import { buildKeyToGearType, classToWeaponType, weaponTypeToClass } from './maps'
-import { clamp, nextPermutation, randomPickOne } from '../utils'
+import { weaponTypeToClass } from './maps'
+import { clamp, nextPermutation } from '../utils'
 import { spBonus, spReq } from './build'
-
-export const neighbor = (b: Build, gears: Gears, classConstraint: Class | undefined): Build => {
-  // TODO: consider powdering, but could be too complex
-  const next: Build = {}
-  Object.assign(next, b)
-
-  const changeBuildKey = randomPickOne(Object.keys(buildKeyToGearType) as (keyof Build)[])
-  const changeGearType: GearType =
-    changeBuildKey !== 'weapon'
-      ? buildKeyToGearType[changeBuildKey]
-      : classConstraint === undefined
-        ? randomPickOne(['Bow', 'Wand', 'Spear', 'Dagger', 'Relik'])
-        : classToWeaponType[classConstraint]
-
-  const possibleGears = gears[changeGearType]
-  if (possibleGears === undefined || possibleGears.length === 0) {
-    console.warn(`gears had empty array of undefined for gear type ${changeGearType}`)
-    next[changeBuildKey] = undefined
-  } else {
-    // TODO: efficient candidate generation
-    next[changeBuildKey] = randomPickOne(possibleGears)
-  }
-  return next
-}
 
 const levelToSP = (level: number): number => (clamp(level, 1, 101) - 1) * 2
 
@@ -129,6 +105,8 @@ export const isValidBuild = (b: Build, classConstraint: Class | undefined, level
   for (const item of Object.values(b) as Item[]) {
     if (level < item.level) return false
   }
+
+  // TODO: set constraints, which is not exposed in the API for some reason e.g. Master Hive, Ornate set
 
   return true
 }
