@@ -31,7 +31,7 @@ const wynnBuilderItemMap: { [name: string]: number } = Object.fromEntries(wynnBu
 // Run
 
 const level = 106
-const best = simulatedAnnealing(parameterPresets[3], gears, 'Warrior', level, false)
+const best = simulatedAnnealing(parameterPresets[3], gears, 'Warrior', level, true)
 printBuild(best, level, wynnBuilderItemMap)
 console.log(idBoosts(best))
 console.log(dps(best))

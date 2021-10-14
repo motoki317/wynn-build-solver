@@ -6,7 +6,9 @@ import { spBonus, spReq } from './build'
 
 const levelToSP = (level: number): number => (clamp(level, 1, 101) - 1) * 2
 
-const isValidEquipOrder = (b: Build, order: (Exclude<keyof Build, 'weapon'>)[], manualSP: number): [boolean, number] => {
+const pieces: readonly (Exclude<keyof Build, 'weapon'>)[] = ['helmet', 'chestplate', 'leggings', 'boots', 'ring1', 'ring2', 'bracelet', 'necklace']
+
+const isValidEquipOrder = (b: Build, order: number[], manualSP: number): [boolean, number] => {
   const manualAssign = [0, 0, 0, 0, 0]
   const spReq = [0, 0, 0, 0, 0]
   const spBonus = [0, 0, 0, 0, 0]
@@ -35,7 +37,8 @@ const isValidEquipOrder = (b: Build, order: (Exclude<keyof Build, 'weapon'>)[], 
   }
 
   for (let i = 0; i < order.length; i++) {
-    const item = b[order[i]]
+    const pieceIdx = order[i]
+    const item = b[pieces[pieceIdx]]
     if (item === undefined) continue
 
     if (!check(item)) return [false, i]
@@ -46,15 +49,29 @@ const isValidEquipOrder = (b: Build, order: (Exclude<keyof Build, 'weapon'>)[], 
   return [true, -1]
 }
 
+const hasReqOrSPBonus = (i: Item): boolean => {
+  const spReqFieldNames = ['strength', 'dexterity', 'intelligence', 'defense', 'agility'] as const
+  const spBonusFieldNames = ['strengthPoints', 'dexterityPoints', 'intelligencePoints', 'defensePoints', 'agilityPoints'] as const
+  for (const spReqFieldName of spReqFieldNames) {
+    if (i[spReqFieldName] > 0) return true
+  }
+  for (const spBonusFieldName of spBonusFieldNames) {
+    if (i[spBonusFieldName]) return true
+  }
+  return false
+}
+
 // strictly checks SP requirement by considering the equip order
 const strictCheckSPRequirement = (b: Build, level: number): boolean => {
-  let currentOrder: (Exclude<keyof Build, 'weapon'>)[] =
-    ['helmet', 'chestplate', 'leggings', 'boots', 'ring1', 'ring2', 'bracelet', 'necklace']
+  let currentOrder: number[] = pieces.map((_, i) => {
+    const item = b[pieces[i]]
+    // pieces that does not exist, or has no req / sp bonus doesn't matter to the wear order
+    return item !== undefined && hasReqOrSPBonus(item) ? i : -1
+  }).filter((idx) => idx !== -1)
   currentOrder.sort()
-  const order: readonly (Exclude<keyof Build, 'weapon'>)[] = currentOrder.slice()
 
   const nextCheck = (invalidAt: number): boolean => {
-    if (invalidAt >= order.length - 2) return nextPermutation(currentOrder)
+    if (invalidAt >= currentOrder.length - 2) return nextPermutation(currentOrder)
     currentOrder = currentOrder.slice(0, invalidAt + 1).concat(currentOrder.slice(invalidAt + 1).sort().reverse())
     return nextPermutation(currentOrder)
   }
