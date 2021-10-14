@@ -91,19 +91,6 @@ const strictCheckSPRequirement = (b: Build, level: number): boolean => {
 }
 
 export const isValidBuild = (b: Build, classConstraint: Class | undefined, level: number, strictSPCheck: boolean): boolean => {
-  // fast check sp requirements
-  const req = spReq(b)
-  const boost = spBonus(b)
-  const manualSPAssign = req.map((_, i) => Math.max(req[i] - boost[i], 0))
-  // check 100+ manual assign => invalid
-  for (const manualAssign of manualSPAssign) {
-    if (100 < manualAssign) return false
-  }
-  if (levelToSP(level) < manualSPAssign.reduce((acc, cur) => acc + cur, 0)) return false
-
-  // strict check sp requirements; could be computationally expensive
-  if (strictSPCheck && !strictCheckSPRequirement(b, level)) return false
-
   // class constraints
   if (b.weapon !== undefined) {
     if (b.weapon.type === undefined) throw new Error('weapon type is undefined')
@@ -123,6 +110,19 @@ export const isValidBuild = (b: Build, classConstraint: Class | undefined, level
   }
 
   // TODO: set constraints, which is not exposed in the API for some reason e.g. Master Hive, Ornate set
+
+  // fast check sp requirements
+  const req = spReq(b)
+  const boost = spBonus(b)
+  const manualSPAssign = req.map((_, i) => Math.max(req[i] - boost[i], 0))
+  // check 100+ manual assign => invalid
+  for (const manualAssign of manualSPAssign) {
+    if (100 < manualAssign) return false
+  }
+  if (levelToSP(level) < manualSPAssign.reduce((acc, cur) => acc + cur, 0)) return false
+
+  // strict check sp requirements; could be computationally expensive
+  if (strictSPCheck && !strictCheckSPRequirement(b, level)) return false
 
   return true
 }
